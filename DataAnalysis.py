@@ -9,21 +9,24 @@ class DataAnalysis:
         self.model = trainedModel
         self.dataHandler = dataHandler
 
+    # Plots the curve that compares the false and true positive rates
     def plotAccCurve(self, testX, testY):
-        yProb = self.model.predictProba(testX)
+        yProb = self.model.predictProb(testX)
         fpr, tpr, _ = roc_curve(testY, yProb)
+        # This is the area under the curve. This represents a percent chance to properly classify or accuracy
         AccArea = auc(fpr, tpr)
 
         plt.figure(figsize=(8, 6))
-        plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC curve (AUC = {AccArea:.2f})')
+        plt.plot(fpr, tpr, color='#006699', lw=2, label=f'Accuracy of the Curve = {AccArea:.2f})')
         plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
-        plt.title('Accuracy Curve for Loan Approval')
+        plt.title('True Positive v.s. False Positive Rates')
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
         plt.legend(loc="lower right")
-        plt.savefig("Accuracy-Curve")
+        plt.savefig("TPR-FPR-Curve")
         plt.show()
-
+    
+    # This predicts the minimum income for loan approval when all other factors are average
     def calculateIncomeThreshold(self):
         classifier = self.model.pipeline.named_steps['classifier']
         scaler = self.model.pipeline.named_steps['preprocessor'].named_transformers_['num']
@@ -36,10 +39,11 @@ class DataAnalysis:
 
         scaledVars = np.zeros((1, len(self.dataHandler.numericalCols)))
         scaledVars[0, incomeIdx] = incomeThresh
-        actualIncThresh = scaler.inverse_transform(scaledVars)[0, incomeIdx]
+        actualIncThresh = scaler.inverse_transform(scaledVars)[0, incomeIdx] * -1
 
-        print(f"Minimum Annual Income for >50% approval: ${actualIncThresh * -1:,.2f}")
+        print(f"Minimum Annual Income for >50% approval: ${actualIncThresh :,.2f}")
 
+    # This makes a bar graph showing likelihood of approval based on gender and marital status
     def demoBias(self, testX):
         testXAnalysis = testX.copy()
         testXAnalysis['predicted_approval'] = self.model.predict(testX)
@@ -49,7 +53,7 @@ class DataAnalysis:
         plt.subplot(1, 2, 1)
         sns.barplot(data=testXAnalysis, x='gender', y='predicted_approval', errorbar=None)
         plt.title('Approval Rate by Gender')
-        plt.ylabel('Approval Probability')
+        plt.ylabel('Approval Rate')
 
         plt.subplot(1, 2, 2)
         sns.barplot(data=testXAnalysis, x='marital_status', y='predicted_approval', errorbar=None)
@@ -60,6 +64,7 @@ class DataAnalysis:
         plt.savefig("Approval-Rate-Gend-Marital")
         plt.show()
 
+    # This plots the impact each feature has on approval
     def featureImportance(self):
         featureNames = self.model.getFeatures()
         coefficients = self.model.pipeline.named_steps['classifier'].coef_[0]
@@ -70,7 +75,7 @@ class DataAnalysis:
         plt.figure(figsize=(10, 6))
         sns.barplot(data=importanceDf, x='Impact', y='Feature', hue='Impact', palette='vlag', legend=False)
         plt.title('Feature Impact')
-        plt.xlabel('Effect on Odds')
+        plt.xlabel('Effect on Approval Probability')
         plt.ylabel('Applicant Feature')
         plt.savefig("Feature-Impact")
         plt.show()
