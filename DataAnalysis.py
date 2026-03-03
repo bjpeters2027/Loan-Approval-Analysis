@@ -40,7 +40,7 @@ class DataAnalysis:
         scaledVars = np.zeros((1, len(self.dataHandler.numericalCols)))
         scaledVars[0, incomeIdx] = incomeThresh
         actualIncThresh = scaler.inverse_transform(scaledVars)[0, incomeIdx] * -1
-
+        print("\n--- Income Threshold ---")
         print(f"Minimum Annual Income for >50% approval: ${actualIncThresh :,.2f}")
 
     # This makes a bar graph showing likelihood of approval based on gender and marital status
@@ -48,8 +48,15 @@ class DataAnalysis:
         testXAnalysis = testX.copy()
         testXAnalysis['predicted_approval'] = self.model.predict(testX)
 
-        plt.figure(figsize=(12, 5))
+        print("\n--- Approval Rates by Gender ---")
+        gender_rates = testXAnalysis.groupby('gender')['predicted_approval'].mean() * 100
+        print(gender_rates.apply(lambda x: f"{x:.2f}%").to_string())
 
+        print("\n--- Approval Rates by Marital Status ---")
+        marital_rates = testXAnalysis.groupby('marital_status')['predicted_approval'].mean() * 100
+        print(marital_rates.apply(lambda x: f"{x:.2f}%").to_string())
+
+        plt.figure(figsize=(12, 5))
         plt.subplot(1, 2, 1)
         sns.barplot(data=testXAnalysis, x='gender', y='predicted_approval', errorbar=None)
         plt.title('Approval Rate by Gender')
@@ -71,6 +78,9 @@ class DataAnalysis:
 
         importanceDf = pd.DataFrame({'Feature': featureNames, 'Impact': coefficients})
         importanceDf = importanceDf.sort_values(by='Impact', key=abs, ascending=False)
+
+        print("\n--- Feature Impacts ---")
+        print(importanceDf.to_string(index=False)) 
 
         plt.figure(figsize=(10, 6))
         sns.barplot(data=importanceDf, x='Impact', y='Feature', hue='Impact', palette='vlag', legend=False)
