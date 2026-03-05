@@ -3,7 +3,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
-class Model:
+class LRModel:
     def __init__(self, numericalCols, categoricalCols):
         self.numericalCols = numericalCols
         self.categoricalCols = categoricalCols

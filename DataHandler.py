@@ -11,8 +11,8 @@ class DataHandler:
         
     # This function splits the data into traqining and testing sets.
     # Defaults to 80% training and 20% testing data
-    def dataSplit(self, testSize=0.2, randomState=42):
+    def dataSplit(self, testSize=0.2):
         df = pd.read_csv(self.filepath)
         X = df.drop(columns=['applicant_id', 'loan_approved'])
         y = df['loan_approved']
-        return train_test_split(X, y, test_size=testSize, random_state=randomState)
+        return train_test_split(X, y, test_size=testSize)
